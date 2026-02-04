@@ -2,6 +2,20 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: Portfolio Website Backend API
 
+Parameters:
+  JWTSecret:
+    Type: String
+    Description: JWT Secret Key
+    NoEcho: true
+  RedisUrl:
+    Type: String
+    Description: Upstash Redis URL
+    NoEcho: true
+  CloudinaryUrl:
+    Type: String
+    Description: Cloudinary URL
+    NoEcho: true
+
 Globals:
   Function:
     Timeout: 30
@@ -204,22 +218,6 @@ Resources:
             RestApiId: !Ref PortfolioApi
             Path: /blogs/{id}/likes
             Method: get
-
-  # Parameters
-  JWTSecret:
-    Type: String
-    Description: JWT Secret Key
-    NoEcho: true
-
-  RedisUrl:
-    Type: String
-    Description: Upstash Redis URL
-    NoEcho: true
-
-  CloudinaryUrl:
-    Type: String
-    Description: Cloudinary URL
-    NoEcho: true
 
 Outputs:
   PortfolioApiUrl:
