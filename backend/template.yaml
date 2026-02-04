@@ -9,10 +9,7 @@ Globals:
     Runtime: python3.11
     Environment:
       Variables:
-        PORTFOLIO_TABLE: !Ref PortfolioTable
-        BLOGS_TABLE: !Ref BlogsTable
-        LIKES_TABLE: !Ref LikesTable
-        USERS_TABLE: !Ref UsersTable
+        DATA_TABLE: !Ref DataTable
         JWT_SECRET: !Ref JWTSecret
         REDIS_URL: !Ref RedisUrl
         CLOUDINARY_URL: !Ref CloudinaryUrl
@@ -31,74 +28,65 @@ Resources:
       Auth:
         DefaultAuthorizer: AWS_IAM
 
-  # DynamoDB Tables
-  PortfolioTable:
+  # Single DynamoDB Table with GSIs
+  DataTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: PortfolioTable
+      TableName: DataTable
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
-        - AttributeName: userId
+        - AttributeName: PK
           AttributeType: S
-      KeySchema:
-        - AttributeName: userId
-          KeyType: HASH
-
-  BlogsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: BlogsTable
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: blogId
+        - AttributeName: SK
           AttributeType: S
-        - AttributeName: created_at
+        - AttributeName: GSI1PK
+          AttributeType: S
+        - AttributeName: GSI1SK
           AttributeType: N
-        - AttributeName: slug
+        - AttributeName: GSI2PK
+          AttributeType: S
+        - AttributeName: GSI2SK
+          AttributeType: S
+        - AttributeName: GSI3PK
+          AttributeType: S
+        - AttributeName: GSI3SK
           AttributeType: S
       KeySchema:
-        - AttributeName: blogId
+        - AttributeName: PK
           KeyType: HASH
-        - AttributeName: created_at
+        - AttributeName: SK
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: slugIndex
+        # GSI1: Blogs sorted by date (for listing all blogs)
+        - IndexName: BlogsByDate
           KeySchema:
-            - AttributeName: slug
+            - AttributeName: GSI1PK
               KeyType: HASH
+            - AttributeName: GSI1SK
+              KeyType: RANGE
           Projection:
             ProjectionType: ALL
-
-  LikesTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: LikesTable
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: blogId
-          AttributeType: S
-        - AttributeName: timestamp_ip
-          AttributeType: S
-      KeySchema:
-        - AttributeName: blogId
-          KeyType: HASH
-        - AttributeName: timestamp_ip
-          KeyType: RANGE
+        # GSI2: Blog lookup by slug
+        - IndexName: BlogBySlug
+          KeySchema:
+            - AttributeName: GSI2PK
+              KeyType: HASH
+            - AttributeName: GSI2SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        # GSI3: Likes by blog
+        - IndexName: LikesByBlog
+          KeySchema:
+            - AttributeName: GSI3PK
+              KeyType: HASH
+            - AttributeName: GSI3SK
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
       TimeToLiveSpecification:
         Enabled: true
-        AttributeName: ttl
-
-  UsersTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: UsersTable
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: email
-          AttributeType: S
-      KeySchema:
-        - AttributeName: email
-          KeyType: HASH
+        AttributeName: TTL
 
   # Lambda Functions
   AuthFunction:

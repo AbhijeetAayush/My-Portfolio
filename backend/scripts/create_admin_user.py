@@ -13,13 +13,11 @@ from getpass import getpass
 # Add parent directory to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Get table name from environment or use default
-USERS_TABLE_NAME = os.environ.get('USERS_TABLE', 'UsersTable')
+# Single table design - no separate users table
 
 def create_admin_user():
-    """Create an admin user in DynamoDB"""
+    """Create an admin user in DynamoDB (single table design)"""
     dynamodb = boto3.resource('dynamodb')
-    users_table = dynamodb.Table(USERS_TABLE_NAME)
     
     print("Create Admin User")
     print("=" * 50)
@@ -46,10 +44,15 @@ def create_admin_user():
     import time
     current_time = int(time.time())
     
-    # Create user
+    # Create user in single table design
     try:
-        users_table.put_item(
+        table_name = os.environ.get('DATA_TABLE', 'DataTable')
+        data_table = dynamodb.Table(table_name)
+        from db.dynamodb import USER_PREFIX, METADATA_SK
+        data_table.put_item(
             Item={
+                'PK': f'{USER_PREFIX}{email}',
+                'SK': METADATA_SK,
                 'email': email,
                 'password_hash': password_hash,
                 'created_at': current_time,
@@ -57,13 +60,15 @@ def create_admin_user():
             }
         )
         print(f"\n✓ Admin user '{email}' created successfully!")
-        print("\nYou can now login at /admin/login")
+        print(f"\nTable used: {table_name}")
+        print("You can now login at /admin/login")
     except Exception as e:
         print(f"\n✗ Error creating user: {str(e)}")
         print("\nMake sure:")
         print("1. DynamoDB table exists")
         print("2. AWS credentials are configured")
         print("3. You have permissions to write to DynamoDB")
+        print(f"4. DATA_TABLE environment variable is set (current: {os.environ.get('DATA_TABLE', 'Not set')})")
 
 if __name__ == '__main__':
     create_admin_user()
