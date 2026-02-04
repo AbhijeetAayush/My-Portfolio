@@ -1,0 +1,20 @@
+version = 0.1
+
+[default]
+[default.global.parameters]
+stack_name = "portfolio-backend"
+
+[default.build.parameters]
+cached = true
+parallel = true
+
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM"
+confirm_changeset = true
+resolve_s3 = true
+region = "us-east-1"
+parameter_overrides = [
+    "JWTSecret=your-secret-key-change-in-production",
+    "RedisUrl=redis://default:password@host:port",
+    "CloudinaryUrl=cloudinary://api_key:api_secret@cloud_name"
+]

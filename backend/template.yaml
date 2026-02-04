@@ -1,0 +1,269 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Portfolio Website Backend API
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+    Environment:
+      Variables:
+        PORTFOLIO_TABLE: !Ref PortfolioTable
+        BLOGS_TABLE: !Ref BlogsTable
+        COMMENTS_TABLE: !Ref CommentsTable
+        LIKES_TABLE: !Ref LikesTable
+        USERS_TABLE: !Ref UsersTable
+        JWT_SECRET: !Ref JWTSecret
+        REDIS_URL: !Ref RedisUrl
+        CLOUDINARY_URL: !Ref CloudinaryUrl
+
+Resources:
+  # API Gateway
+  PortfolioApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: PortfolioApi
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+      Auth:
+        DefaultAuthorizer: AWS_IAM
+
+  # DynamoDB Tables
+  PortfolioTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: PortfolioTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+  BlogsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: BlogsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: blogId
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: N
+        - AttributeName: slug
+          AttributeType: S
+      KeySchema:
+        - AttributeName: blogId
+          KeyType: HASH
+        - AttributeName: created_at
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: slugIndex
+          KeySchema:
+            - AttributeName: slug
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+
+  CommentsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: CommentsTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: commentId
+          AttributeType: S
+        - AttributeName: created_at
+          AttributeType: N
+        - AttributeName: blogId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: commentId
+          KeyType: HASH
+        - AttributeName: created_at
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: blogIdIndex
+          KeySchema:
+            - AttributeName: blogId
+              KeyType: HASH
+            - AttributeName: created_at
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+  LikesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: LikesTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: blogId
+          AttributeType: S
+        - AttributeName: timestamp_ip
+          AttributeType: S
+      KeySchema:
+        - AttributeName: blogId
+          KeyType: HASH
+        - AttributeName: timestamp_ip
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        Enabled: true
+        AttributeName: ttl
+
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UsersTable
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: email
+          AttributeType: S
+      KeySchema:
+        - AttributeName: email
+          KeyType: HASH
+
+  # Lambda Functions
+  AuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PortfolioAuthFunction
+      CodeUri: src/
+      Handler: handlers.auth.lambda_handler
+      Events:
+        Login:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /auth/login
+            Method: post
+
+  PortfolioFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PortfolioFunction
+      CodeUri: src/
+      Handler: handlers.portfolio.lambda_handler
+      Events:
+        GetPortfolio:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /portfolio
+            Method: get
+        UpdatePortfolio:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /portfolio
+            Method: put
+
+  BlogsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: BlogsFunction
+      CodeUri: src/
+      Handler: handlers.blogs.lambda_handler
+      Events:
+        GetBlogs:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs
+            Method: get
+        GetBlog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}
+            Method: get
+        CreateBlog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs
+            Method: post
+        UpdateBlog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}
+            Method: put
+        DeleteBlog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}
+            Method: delete
+
+  CommentsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CommentsFunction
+      CodeUri: src/
+      Handler: handlers.comments.lambda_handler
+      Events:
+        GetComments:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}/comments
+            Method: get
+        CreateComment:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}/comments
+            Method: post
+        DeleteComment:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /comments/{id}
+            Method: delete
+
+  LikesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LikesFunction
+      CodeUri: src/
+      Handler: handlers.likes.lambda_handler
+      Events:
+        LikeBlog:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}/likes
+            Method: post
+        GetLikes:
+          Type: Api
+          Properties:
+            RestApiId: !Ref PortfolioApi
+            Path: /blogs/{id}/likes
+            Method: get
+
+  # Parameters
+  JWTSecret:
+    Type: String
+    Description: JWT Secret Key
+    NoEcho: true
+
+  RedisUrl:
+    Type: String
+    Description: Upstash Redis URL
+    NoEcho: true
+
+  CloudinaryUrl:
+    Type: String
+    Description: Cloudinary URL
+    NoEcho: true
+
+Outputs:
+  PortfolioApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${PortfolioApi}.execute-api.${AWS::Region}.amazonaws.com/prod/'
