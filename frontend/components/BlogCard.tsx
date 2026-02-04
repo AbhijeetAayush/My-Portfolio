@@ -15,7 +15,6 @@ interface BlogCardProps {
     published_at: number
     reading_time?: number
     likes_count?: number
-    comments_count?: number
     tags?: string[]
   }
   index: number
@@ -83,9 +82,6 @@ export default function BlogCard({ blog, index }: BlogCardProps) {
         <div className="flex items-center gap-6 text-sm text-gray-500">
           {blog.likes_count !== undefined && (
             <span>❤️ {blog.likes_count} likes</span>
-          )}
-          {blog.comments_count !== undefined && (
-            <span>💬 {blog.comments_count} comments</span>
           )}
         </div>
       </div>

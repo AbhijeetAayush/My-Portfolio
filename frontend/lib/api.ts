@@ -55,13 +55,6 @@ export const blogsAPI = {
   delete: (id: string) => api.delete(`/blogs/${id}`),
 }
 
-export const commentsAPI = {
-  getByBlog: (blogId: string) => api.get(`/blogs/${blogId}/comments`),
-  create: (blogId: string, data: any) =>
-    api.post(`/blogs/${blogId}/comments`, data),
-  delete: (commentId: string) => api.delete(`/comments/${commentId}`),
-}
-
 export const likesAPI = {
   get: (blogId: string) => api.get(`/blogs/${blogId}/likes`),
   add: (blogId: string) => api.post(`/blogs/${blogId}/likes`),

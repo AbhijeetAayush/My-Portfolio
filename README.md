@@ -5,7 +5,7 @@ A full-stack portfolio website with blog functionality, built with Next.js front
 ## Features
 
 - **Portfolio Pages**: Home, About, Projects, Experience with parallax effects
-- **Blog System**: Full-featured blog with comments and likes
+- **Blog System**: Full-featured blog with likes
 - **Admin Dashboard**: Complete CMS for managing portfolio content and blog posts
 - **Modern UI**: Beautiful, responsive design with animations
 - **Serverless Backend**: AWS Lambda, DynamoDB, Redis caching
@@ -153,8 +153,6 @@ sam deploy
 - `GET /portfolio` - Get portfolio data
 - `GET /blogs` - Get all blogs
 - `GET /blogs/{id}` - Get single blog
-- `GET /blogs/{id}/comments` - Get comments
-- `POST /blogs/{id}/comments` - Create comment
 - `GET /blogs/{id}/likes` - Get likes
 - `POST /blogs/{id}/likes` - Add like
 
@@ -164,7 +162,6 @@ sam deploy
 - `POST /blogs` - Create blog
 - `PUT /blogs/{id}` - Update blog
 - `DELETE /blogs/{id}` - Delete blog
-- `DELETE /comments/{id}` - Delete comment
 
 ## License
 

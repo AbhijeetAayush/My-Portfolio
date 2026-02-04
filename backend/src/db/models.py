@@ -56,7 +56,6 @@ class Blog:
         self.author = data.get('author', '')
         self.reading_time = data.get('reading_time', 0)
         self.likes_count = data.get('likes_count', 0)
-        self.comments_count = data.get('comments_count', 0)
         self.seo_description = data.get('seo_description', '')
         self.published_at = data.get('published_at', self.created_at)
     
@@ -73,7 +72,6 @@ class Blog:
             'author': self.author,
             'reading_time': self.reading_time,
             'likes_count': self.likes_count,
-            'comments_count': self.comments_count,
             'seo_description': self.seo_description,
             'published_at': self.published_at
         }

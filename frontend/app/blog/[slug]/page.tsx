@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { blogsAPI, commentsAPI, likesAPI } from '@/lib/api'
+import { blogsAPI, likesAPI } from '@/lib/api'
 import Image from 'next/image'
 import { format } from 'date-fns'
-import BlogComments from '@/components/BlogComments'
 import BlogLikes from '@/components/BlogLikes'
 
 export default function BlogPostPage() {
@@ -122,12 +121,11 @@ export default function BlogPostPage() {
           dangerouslySetInnerHTML={{ __html: blog.content }}
         />
 
-        {/* Likes and Comments */}
+        {/* Likes */}
         <div className="border-t border-gray-200 pt-8">
-          <div className="flex items-center gap-8 mb-8">
+          <div className="flex items-center gap-8">
             <BlogLikes blogId={blog.blogId} initialLikes={blog.likes_count || 0} />
           </div>
-          <BlogComments blogId={blog.blogId} />
         </div>
       </article>
     </div>

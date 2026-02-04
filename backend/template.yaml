@@ -11,7 +11,6 @@ Globals:
       Variables:
         PORTFOLIO_TABLE: !Ref PortfolioTable
         BLOGS_TABLE: !Ref BlogsTable
-        COMMENTS_TABLE: !Ref CommentsTable
         LIKES_TABLE: !Ref LikesTable
         USERS_TABLE: !Ref UsersTable
         JWT_SECRET: !Ref JWTSecret
@@ -67,33 +66,6 @@ Resources:
           KeySchema:
             - AttributeName: slug
               KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-
-  CommentsTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: CommentsTable
-      BillingMode: PAY_PER_REQUEST
-      AttributeDefinitions:
-        - AttributeName: commentId
-          AttributeType: S
-        - AttributeName: created_at
-          AttributeType: N
-        - AttributeName: blogId
-          AttributeType: S
-      KeySchema:
-        - AttributeName: commentId
-          KeyType: HASH
-        - AttributeName: created_at
-          KeyType: RANGE
-      GlobalSecondaryIndexes:
-        - IndexName: blogIdIndex
-          KeySchema:
-            - AttributeName: blogId
-              KeyType: HASH
-            - AttributeName: created_at
-              KeyType: RANGE
           Projection:
             ProjectionType: ALL
 
@@ -223,32 +195,6 @@ Resources:
           Properties:
             RestApiId: !Ref PortfolioApi
             Path: /blogs/{id}
-            Method: delete
-
-  CommentsFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      FunctionName: CommentsFunction
-      CodeUri: src/
-      Handler: handlers.comments.lambda_handler
-      Events:
-        GetComments:
-          Type: Api
-          Properties:
-            RestApiId: !Ref PortfolioApi
-            Path: /blogs/{id}/comments
-            Method: get
-        CreateComment:
-          Type: Api
-          Properties:
-            RestApiId: !Ref PortfolioApi
-            Path: /blogs/{id}/comments
-            Method: post
-        DeleteComment:
-          Type: Api
-          Properties:
-            RestApiId: !Ref PortfolioApi
-            Path: /comments/{id}
             Method: delete
 
   LikesFunction:
