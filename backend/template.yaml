@@ -163,12 +163,12 @@ Resources:
             Path: /portfolio
             Method: put
 
-  BlogsFunction:
+  BlogsGetFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: BlogsFunction
+      FunctionName: BlogsGetFunction
       CodeUri: src/
-      Handler: handlers.blogs.lambda_handler
+      Handler: handlers.blogs_get.lambda_handler
       Events:
         GetBlogs:
           Type: Api
@@ -182,18 +182,42 @@ Resources:
             RestApiId: !Ref PortfolioApi
             Path: /blogs/{id}
             Method: get
+
+  BlogsCreateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: BlogsCreateFunction
+      CodeUri: src/
+      Handler: handlers.blogs_create.lambda_handler
+      Events:
         CreateBlog:
           Type: Api
           Properties:
             RestApiId: !Ref PortfolioApi
             Path: /blogs
             Method: post
+
+  BlogsUpdateFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: BlogsUpdateFunction
+      CodeUri: src/
+      Handler: handlers.blogs_update.lambda_handler
+      Events:
         UpdateBlog:
           Type: Api
           Properties:
             RestApiId: !Ref PortfolioApi
             Path: /blogs/{id}
             Method: put
+
+  BlogsDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: BlogsDeleteFunction
+      CodeUri: src/
+      Handler: handlers.blogs_delete.lambda_handler
+      Events:
         DeleteBlog:
           Type: Api
           Properties:
